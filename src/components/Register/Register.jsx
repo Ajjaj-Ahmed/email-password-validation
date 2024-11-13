@@ -1,5 +1,5 @@
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import React, { useState } from 'react';
+import { createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
+import React, { useRef, useState } from 'react';
 import { auth } from '../../firebase/firebase.init';
 import { FaRegEye, FaEyeSlash } from "react-icons/fa";
 
@@ -12,12 +12,16 @@ const Register = () => {
     const handleEyeButton = (value) => {
         setEye(value);
     }
+
+    const emailRef = useRef()
+    
     const handleRegister = (event) => {
         event.preventDefault();
         const email = event.target.email.value;
         const password = event.target.password.value;
         const terms = event.target.terms.checked;
-        console.log(email, password, terms)
+
+      
 
         // const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
@@ -25,11 +29,6 @@ const Register = () => {
         setErrorMessage('');
         setSuccess(false)
 
-
-        // if (password.length < 6) {
-        //     setErrorMessage('Password should be 6 digits');
-        //     return
-        // }
         // if (!passwordRegex.test(password)) {
         //     setErrorMessage('Password should have one upper ,one lower and one speical character')
         //     return
@@ -40,10 +39,23 @@ const Register = () => {
             return
         }
         createUserWithEmailAndPassword(auth, email, password)
-            .then(result => setSuccess(true))
+            .then(result =>{
+                setSuccess(true)
+                // email varification
+                sendEmailVerification(auth.currentUser)
+                .then()
+               
+            })
             .catch(error => setErrorMessage(error.message))
 
 
+    }
+
+    const handleForgetPass=()=>{
+        const email = emailRef.current.value;
+        sendPasswordResetEmail(auth, email)
+        .then()
+        .catch(error=>console.log(error.message))
     }
 
     return (
@@ -61,7 +73,7 @@ const Register = () => {
                         <path
                             d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
                     </svg>
-                    <input type="email" name='email' className="grow" placeholder="Email" />
+                    <input type="email" name='email' ref={emailRef} className="grow" placeholder="Email" />
                 </label>
 
                 <label className="input input-bordered flex items-center gap-2 my-8">
@@ -75,11 +87,15 @@ const Register = () => {
                             d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
                             clipRule="evenodd" />
                     </svg>
-                    <input type={eye ? 'text' : 'password'} placeholder='Password' name='password' className="grow" />
+                    <input type={eye ? 'text' : 'password'} placeholder='Password'  name='password' className="grow" />
                     <button onClick={() => handleEyeButton(!eye)}>
                         {eye ? <FaEyeSlash /> : <FaRegEye />}
                     </button>
                 </label>
+
+               <div className='cursor-pointer' onClick={handleForgetPass}>
+                <p>Forget Password !</p>
+               </div>
 
                 {/* check box */}
                 <div className='text-center my-4'>

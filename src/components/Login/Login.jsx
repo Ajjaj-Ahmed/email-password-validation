@@ -1,18 +1,31 @@
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import React from 'react';
+import React, { useState } from 'react';
 import { auth } from '../../firebase/firebase.init';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
+    const [success, setSuccess] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('')
+
     const handleLogin = (event) => {
         event.preventDefault();
         const email = event.target.email.value;
         const password = event.target.password.value;
         // console.log(email, password)
+        setSuccess(false)
+        setErrorMessage('')
 
         signInWithEmailAndPassword(auth,email,password)
-        .then(result=>console.log(result.user))
-        .catch(error=>console.log(error.message))
+        .then(result=>{
+            if(!result.user.emailVerified){
+                setErrorMessage('Email Varified first');
+                return
+            }
+            console.log(result.user)
+            setSuccess(true)})
+        .catch(error=>setErrorMessage(error.message))
     }
+
     return (
         <div>
             <div className='max-w-lg mx-auto text-center'>
@@ -49,6 +62,13 @@ const Login = () => {
 
                     <button className='btn btn-primary btn-wide'>Submit</button>
                 </form>
+                {
+                    success && <p className='text-green-500 my-4'>'User Login successfulll'</p>
+                }
+                {
+                    errorMessage && <p className='text-red-600 my-4'>{errorMessage}</p>
+                }
+                <p className='my-6 '>Don't you any account !! <Link to={'/register'}>Sign Up </Link></p>
 
             </div>
         </div>
